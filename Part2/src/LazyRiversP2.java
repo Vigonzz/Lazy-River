@@ -16,6 +16,7 @@ public class LazyRiversP2 {
     static Set<String> stopWords() throws IOException {
         // Read the stop file and clean it up a bit
         String content = Files.readString(Path.of("../stop_words.txt"));
+        // Split the lines and get the characters between a-z
         Set<String> stops = new HashSet<>(Arrays.asList(content.strip().split(",")));
         for (char character = 'a'; character <= 'z'; character++) {
             stops.add(String.valueOf(character));
@@ -44,6 +45,11 @@ public class LazyRiversP2 {
     }
 
     // Counts and sorts the words
+    /*
+    Adding a snapshot like part 1 would create problems since groupingBy would read the whole stream
+    before the return. Additionally there would be no clean point for every 5,000 words.
+    I wanted to focus on splitting the code into stages and not replicating golf
+     */
     static List<Map.Entry<String, Long>> countAndSort(Stream<String> words) {
         // Short pause in the lazy river due to needed to collect - simmilar to pythons yield
         Map<String, Long> freqs = words.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -55,6 +61,12 @@ public class LazyRiversP2 {
     public static void main (String[] args) throws IOException {
         Set<String> stops = stopWords();
 
-
+        try (Stream<String> lines = lines(args[0])) {
+            // Everything that uses the stream goes inside of it
+            List<Map.Entry<String, Long>> wordFreqs = countAndSort(nonStopWords(words(lines), stops));
+            // Turning wordFreqs into a stream
+            // Last block from part 1 in python
+            wordFreqs.stream().limit(25).forEach(entry -> System.out.println(entry.getKey() + "  -  "+ entry.getValue()));
+        }
     }
 }
