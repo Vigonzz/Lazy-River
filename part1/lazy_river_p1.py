@@ -5,7 +5,7 @@ Task: Part 1 of the lazy river style using python (okayed during lecture
 and iterate over words rather the characters)
 """
 
-import sys, string
+import sys, string, operator
 
 def words(filename):
     """ Word-source Generator """
@@ -51,12 +51,32 @@ def non_stop_words(filename):
             yield word    
 
 
-counter = 0 
+def count_and_sort(filename):
+    """ Yield snapshots: sorting into a list of pairs for word and count """
+    freqs = {}
+    counter = 1
 
-#for word in non_stop_words(sys.argv[1]):
-#    if counter < 20:
- #       print(word)
-  #      counter += 1
-   # else:
-    #    break
+    # pull the words and count them
+    for word in non_stop_words(filename):
+        if word not in freqs:
+            freqs[word] = 1
+        else:
+            freqs[word] += 1
+        
+        # Snapshot every 5,000 words
+        if (counter % 5_000) == 0:
+            # Build the sorted snapshot
+            yield sorted(freqs.items(), key=operator.itemgetter(1), reverse=True)
+            # Add to the counter
+        counter += 1
+    # Get final snapshot
+    yield sorted(freqs.items(), key=operator.itemgetter(1), reverse=True)
+
+
+# The main function
+for snapshot in count_and_sort(sys.argv[1]):
+    print("-----------------------------")
+    for w,c in snapshot[0:25]:
+        print(f"{w}  -  {c}")
+
 
